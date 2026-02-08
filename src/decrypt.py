@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os
+from settings import default_key_path
 import parser
 import util
 import argparse
@@ -17,27 +17,26 @@ def decrypt(ciphertext, key):
         end = start + size
         substr = ciphertext[start:end]
         cipher = util.decode(substr)
-        message += chr(util.power_mod_n(cipher, d, n))
+        codepoint = util.power_mod_n(cipher, d, n)
+        message += chr(codepoint)
         i += 1
         start += size
     return message
 
 def main():
-    home_dir = os.path.expanduser('~')
-    default_key = f'{home_dir}/keys/rsa.txt'
-    argparser = argparse.ArgumentParser(prog='decrypt.py', description='Decrypt a message')
-    argparser.add_argument('-c', '--cipherfile', type=str, required=True)
-    argparser.add_argument('-k', '--keyfile', type=str, default=default_key)
-    argparser.add_argument('-o', '--output', type=str)
+    argparser = argparse.ArgumentParser(prog='decrypt.py', description='Decrypt a message using the RSA algorithm')
+    argparser.add_argument('-i', '--inputfile', type=str, required=True)
+    argparser.add_argument('-k', '--keyfile', type=str, default=default_key_path)
+    argparser.add_argument('-o', '--outputfile', type=str)
     args = argparser.parse_args()
-    cipherfile = open(args.cipherfile, 'rb')
-    ciphertext = cipherfile.read()
+    with open(args.inputfile, 'rb') as file:
+        ciphertext = file.read()
     ciphertext = ciphertext.decode('utf-8')
     key = parser.parse_key(args.keyfile)
     msg = decrypt(ciphertext, key)
-    if args.output:
-        outfile = open(args.output, 'w')
-        outfile.write(msg)
+    if args.outputfile:
+        with open(args.outputfile, 'w') as file:
+            file.write(msg)
     else:
         print(msg, end='')
 
