@@ -4,8 +4,10 @@ from settings import default_key_path
 import parser
 import util
 import argparse
+import base64
 
 def decrypt(ciphertext, key):
+    bytearr = base64.b64decode(ciphertext)
     message = ''
     keylen = len(key)
     start = 0
@@ -15,8 +17,8 @@ def decrypt(ciphertext, key):
         (n, e, d) = key[i % keylen]
         size = util.size(n)
         end = start + size
-        substr = ciphertext[start:end]
-        cipher = util.decode(substr)
+        block = bytearr[start:end]
+        cipher = int.from_bytes(block, byteorder='big')
         codepoint = util.power_mod_n(cipher, d, n)
         message += chr(codepoint)
         i += 1
